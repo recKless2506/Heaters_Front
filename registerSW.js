@@ -9,5 +9,3 @@ if ('serviceWorker' in navigator) {
       .catch((err) => console.warn('SW register error', err));
   });
 }
-*** End Patch```로  !*** End Patch%    ```
-json  Here  to=functions.apply_patch  assistantһында  !*** Begin Patch***)}  !*** End Patch  Looking  to=functions.apply_patch  assistant to=functions.apply_patch  hunter2  !*** Begin Patch
