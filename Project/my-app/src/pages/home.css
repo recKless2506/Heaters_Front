@@ -1,11 +1,32 @@
 /* src/pages/home.css */
-.home-container {
-  max-width: 1200px;
-  margin: 50px auto;
-  text-align: center;
-  padding: 20px;
+.home-page {
+  min-height: 100vh;
+  /* Фон по теме обогревателей: тёплый градиент + фото */
+  background:
+    linear-gradient(135deg, rgba(5, 103, 183, 0.8), rgba(255, 140, 0, 0.85)),
+    url("../assets/DefaultImage.jpg") center/cover no-repeat fixed;
+  display: flex;
+  flex-direction: column;
 }
-.home-container h1 { font-size:36px; color:#0567B7; margin-bottom:20px; }
-.home-container p { font-size:18px; color:#333; margin-bottom:30px; }
-.home-button { display:inline-block; padding:12px 30px; background:#0567B7; color:white; border-radius:10px; text-decoration:none; font-weight:500; }
-.home-button:hover { background:#034a87; }
+
+.home-container {
+  max-width: 900px;
+  margin: 80px auto;
+  text-align: center;
+  padding: 32px 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.home-container h1 {
+  font-size: 36px;
+  color: #0567B7;
+  margin-bottom: 16px;
+}
+
+.home-container p {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 12px;
+}

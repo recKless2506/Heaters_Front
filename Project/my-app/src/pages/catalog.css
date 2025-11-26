@@ -1,11 +1,56 @@
 /* src/pages/catalog.css (взял твои стили) */
-.products {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 30px;
-  justify-content: flex-start;
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 20px;
+.catalog-page {
+  min-height: 100vh;
+  background: #f8fafc;
 }
-@media (max-width: 1200px) { .products { justify-content: center; gap: 20px; } }
+
+/* Блок под хедером с иконкой корзины справа */
+.catalog-top {
+  max-width: 1200px;
+  margin: 16px auto 0;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.catalog-search {
+  flex: 1;
+}
+
+.catalog-search input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  outline: none;
+}
+
+.catalog-search input:focus {
+  border-color: #0567B7;
+  box-shadow: 0 0 0 1px rgba(5, 103, 183, 0.3);
+}
+
+.products {
+  max-width: 1200px;
+  margin: 24px auto 40px;
+  padding: 0 20px;
+
+  /* 4 товара в строке */
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 30px;
+}
+
+@media (max-width: 1024px) {
+  .products {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .products {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

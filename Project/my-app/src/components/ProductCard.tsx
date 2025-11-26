@@ -21,8 +21,10 @@ const ProductCard: React.FC<Props> = ({ product, onAddToCart }) => {
       />
 
       <div className="content">
-        <div className="product-title">{product.Title}</div>
-        <div className="product-specs">{product.Efficiency}</div>
+        <div className="product-title">{product.Title || "Без названия"}</div>
+        <div className="product-specs">
+          {product.Description || product.Efficiency || "Описание недоступно"}
+        </div>
 
         <div
           style={{

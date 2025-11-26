@@ -28,7 +28,7 @@ const HeaterPage: React.FC<{ products?: HeaterProduct[]; cartCount: number }> = 
   if (!product) return <div><Header cartCount={cartCount} /><div style={{ padding: 40, textAlign: "center" }}>Загрузка...</div></div>;
 
   return (
-    <div>
+    <div className="heater-page">
       <Header cartCount={cartCount} />
       <div className="product-container">
         <div className="product-image">

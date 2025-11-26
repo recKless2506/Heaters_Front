@@ -5,12 +5,12 @@ import "./home.css";
 
 const HomePage: React.FC<{ cartCount: number }> = ({ cartCount }) => {
   return (
-    <div>
-      <Header cartCount={cartCount} />
+    <div className="home-page">
+      <Header cartCount={cartCount} hideLogo />
+
       <div className="home-container">
         <h1>Добро пожаловать в магазин теплонагревателей</h1>
-        <p>Выберите подходящий прибор в каталоге.</p>
-        <a className="home-button" href="/catalog">Перейти в каталог</a>
+        <p>Выберите подходящий прибор в меню.</p>
       </div>
     </div>
   );

@@ -1,15 +1,46 @@
-import type { HeaterProduct } from "../types";
+import type { HeaterProduct, Request } from "../types";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8001";
-export async function fetchCatalog(): Promise<HeaterProduct[]> {
+// Используем /api префикс - Vite proxy перенаправит на backend
+const API_BASE = "/api";
+
+type CatalogResponse = {
+  success: boolean;
+  message: string;
+  data?: {
+    cart_count?: number;
+    products?: HeaterProduct[];
+  };
+};
+
+type CartResponse = {
+  success: boolean;
+  message: string;
+  data?: {
+    cart_count?: number;
+    items?: Request[];
+  };
+};
+
+export async function fetchCatalog(): Promise<{ products: HeaterProduct[]; cartCount: number }> {
   const res = await fetch(`${API_BASE}/catalog_heaters`, {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error("Failed to fetch catalog");
 
-  const json = await res.json();
-  // Берём массив products из data
-  return json.data?.products ?? [];
+  const json = (await res.json()) as CatalogResponse;
+  return {
+    products: json.data?.products ?? [],
+    cartCount: json.data?.cart_count ?? 0,
+  };
+}
+
+export async function fetchCartSummary(): Promise<number> {
+  const res = await fetch(`${API_BASE}/cart`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error("Failed to fetch cart");
+  const json = (await res.json()) as CartResponse;
+  return json.data?.cart_count ?? 0;
 }
 
 export async function fetchHeaterById(id: number | string) {

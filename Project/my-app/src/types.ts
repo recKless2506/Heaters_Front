@@ -9,6 +9,8 @@ export type HeaterProduct = {
 };
 
 export type RequestHeater = {
+  HeatersProductRequestID?: number;
+  HeatersProductID?: number;
   HeaterProduct: HeaterProduct;
   Area?: string | number;
 };

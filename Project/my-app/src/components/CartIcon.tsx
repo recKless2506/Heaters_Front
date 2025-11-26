@@ -1,5 +1,6 @@
 // src/components/CartIcon.tsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./carticon.css";
 
 type CartIconProps = {
@@ -7,11 +8,26 @@ type CartIconProps = {
 };
 
 const CartIcon: React.FC<CartIconProps> = ({ count }) => {
+  const navigate = useNavigate();
+  const isDisabled = count <= 0;
+
+  const handleClick = () => {
+    if (isDisabled) return;
+    navigate("/cart");
+  };
+
   return (
-    <div className="cart-icon-wrapper" title="Корзина">
-      <div className="cart-icon">
-        <svg viewBox="0 0 24 24">
-          <path fill="white" d="M7 4h-2l-3 9v2h2l3-9zm0 11a2 2 0 1 0 4 0 2 2 0 0 0-4 0zm9-11h-6l-1 2h8v2h-8l1 2h6v2h-6l1 2h6v2h-6v-2h-6v-2h6l-1-2h-6v-2h6l-1-2h-6v-2h6l-1-2h6v-2z"/>
+    <div
+      className={`cart-icon-wrapper ${isDisabled ? "cart-icon-wrapper--disabled" : ""}`}
+      title="Корзина"
+      onClick={handleClick}
+    >
+      <div className={`cart-icon ${isDisabled ? "cart-icon--disabled" : ""}`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0567B7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {/* Корзина покупок */}
+          <circle cx="9" cy="21" r="1" fill="#0567B7" />
+          <circle cx="20" cy="21" r="1" fill="#0567B7" />
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
         </svg>
         {count > 0 && <div className="cart-count">{count}</div>}
       </div>
