@@ -20,5 +20,6 @@ export type Request = {
   PlaceSquare?: number;
   OutsideTemperature?: number;
   InsideTemperature?: number;
+  Cost?: number;
   RequestHeaters?: RequestHeater[];
 };

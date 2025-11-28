@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import type { HeaterProduct } from "../types";
 import "./productcard.css";
 import defaultImage from "../assets/DefaultImage.jpg";
@@ -34,9 +35,9 @@ const ProductCard: React.FC<Props> = ({ product, onAddToCart }) => {
             justifyContent: "center",
           }}
         >
-          <a className="product-button" href={`/heater/${product.ID}`}>
+          <Link className="product-button" to={`/heater/${product.ID}`}>
             Подробнее
-          </a>
+          </Link>
           <button
             className="product-button"
             onClick={() => onAddToCart(product)}

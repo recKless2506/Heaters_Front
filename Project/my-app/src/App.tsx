@@ -8,6 +8,9 @@ import CartPage from "./pages/CartPage";
 import type { HeaterProduct, Request } from "./types";
 import { fetchCatalog, fetchCartSummary } from "./api/api";
 
+const isGhPages =
+  typeof window !== "undefined" && window.location.hostname.endsWith("github.io");
+
 const App: React.FC = () => {
   const [products, setProducts] = useState<HeaterProduct[]>([]);
   const [cartCount, setCartCount] = useState<number>(0);
@@ -33,7 +36,14 @@ const App: React.FC = () => {
   }, []);
 
   const onAddToCart = (product: HeaterProduct) => {
-    // Сначала отправляем на сервер, затем обновляем счётчик из реального состояния корзины
+    // На GitHub Pages backend недоступен — просто увеличиваем счётчик локально
+    if (isGhPages) {
+      setCartCount((prev) => prev + 1);
+      setHasLocalCart(true);
+      return;
+    }
+
+    // В режиме разработки/на сервере работаем с реальным API
     fetch(`/api/add-to-cart/${product.ID}`, {
       method: "POST",
     })

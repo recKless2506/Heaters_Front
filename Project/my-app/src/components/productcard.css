@@ -5,7 +5,6 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  overflow: hidden;
   color: white;
   transition: transform 0.2s;
   width: 100%;
@@ -27,3 +26,23 @@
   display:flex; align-items:center; justify-content:center; text-decoration:none; cursor:pointer; border:none;
 }
 .product-button:hover { background:#f0f0f0; }
+
+/* На очень узких экранах (iPhone и т.п.) карточка растягивается по высоте,
+   чтобы всегда помещались заголовок, текст и кнопки */
+@media (max-width: 480px) {
+  .product-card {
+    height: auto;
+  }
+
+  .product-card img {
+    height: 150px;
+  }
+
+  .product-title {
+    font-size: 14px;
+  }
+
+  .product-specs {
+    font-size: 12px;
+  }
+}

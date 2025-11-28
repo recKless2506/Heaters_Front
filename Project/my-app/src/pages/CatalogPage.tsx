@@ -1,9 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import Header from "../components/Header";
 import CartIcon from "../components/CartIcon";
 import ProductCard from "../components/ProductCard";
 import type { HeaterProduct } from "../types";
 import "./catalog.css";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../store";
+import { setSearch } from "../store/filterSlice";
 
 type Props = {
   products: HeaterProduct[];
@@ -12,7 +15,8 @@ type Props = {
 };
 
 const CatalogPage: React.FC<Props> = ({ products, cartCount, onAddToCart }) => {
-  const [search, setSearch] = useState("");
+  const search = useSelector((state: RootState) => state.filters.search);
+  const dispatch = useDispatch();
 
   const filteredProducts = useMemo(
     () =>
@@ -39,7 +43,7 @@ const CatalogPage: React.FC<Props> = ({ products, cartCount, onAddToCart }) => {
             type="text"
             placeholder="Поиск по названию или описанию..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => dispatch(setSearch(e.target.value))}
           />
         </div>
         <CartIcon count={cartCount} />

@@ -20,6 +20,25 @@ type CartApiResponse = {
   };
 };
 
+// Рассчёт "результата" по формуле из бэкенда (CalculateRequestCost)
+// cost = 2160 * 0.2 * totalArea * 8.49 * (InsideTemperature - OutsideTemperature)
+const calculateResult = (req: Request): number => {
+  const heaters = req.RequestHeaters ?? [];
+  const totalArea = heaters.reduce((sum, rh) => {
+    const val = rh.Area !== undefined && rh.Area !== null ? Number(rh.Area) : 0;
+    return sum + (Number.isFinite(val) ? val : 0);
+  }, 0);
+
+  const inside = req.InsideTemperature ?? 0;
+  const outside = req.OutsideTemperature ?? 0;
+
+  if (!totalArea || !Number.isFinite(inside) || !Number.isFinite(outside)) {
+    return 0;
+  }
+
+  return 2160 * 0.2 * totalArea * 8.49 * (inside - outside);
+};
+
 const CartPage: React.FC<CartPageProps> = ({ cartCount, clearCart }) => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,8 +98,6 @@ const CartPage: React.FC<CartPageProps> = ({ cartCount, clearCart }) => {
 
     fetchCart();
   }, []);
-
-  const firstRequest = requests[0];
 
   const handleClearCart = () => {
     // Очищаем корзину на сервере и в локальном состоянии
@@ -154,51 +171,58 @@ const CartPage: React.FC<CartPageProps> = ({ cartCount, clearCart }) => {
             {/* Карточки товаров, как в application.html, с возможностью редактирования объёма */}
             <div className="cards-container">
               {requests.map((req, reqIndex) =>
-                (req.RequestHeaters ?? []).map((rh, rhIndex) => (
-                  <div className="card" key={`${req.ID}-${rhIndex}`}>
-                    <img
-                      src={rh.HeaterProduct.Image || defaultImage}
-                      alt={rh.HeaterProduct.Title}
-                      className="card-img"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = defaultImage;
-                      }}
-                    />
-                    <div className="card-text-row">
-                      <div className="card-text-block block-title">
-                        {rh.HeaterProduct.Title}
+                (req.RequestHeaters ?? []).map((rh, rhIndex) => {
+                  const result = calculateResult(req);
+                  return (
+                    <div className="card" key={`${req.ID}-${rhIndex}`}>
+                      <img
+                        src={rh.HeaterProduct.Image || defaultImage}
+                        alt={rh.HeaterProduct.Title}
+                        className="card-img"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = defaultImage;
+                        }}
+                      />
+                      <div className="card-text-row">
+                        <div className="card-text-block block-title">
+                          {rh.HeaterProduct.Title}
+                        </div>
+                        <div className="card-divider" />
+                        <div className="card-text-block block-specs">
+                          {rh.HeaterProduct.Power}
+                        </div>
+                        <div className="card-divider" />
+                        <div className="card-text-block block-input">
+                          <div className="input-label">Объём носителя</div>
+                          <input
+                            type="text"
+                            className="card-input"
+                            value={rh.Area ?? ""}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setRequests((prev) =>
+                                prev.map((reqItem, i) => {
+                                  if (i !== reqIndex) return reqItem;
+                                  return {
+                                    ...reqItem,
+                                    RequestHeaters: reqItem.RequestHeaters?.map(
+                                      (innerRh, j) =>
+                                        j === rhIndex ? { ...innerRh, Area: value } : innerRh
+                                    ),
+                                  };
+                                })
+                              );
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div className="card-divider" />
-                      <div className="card-text-block block-specs">
-                        {rh.HeaterProduct.Power}
-                      </div>
-                      <div className="card-divider" />
-                      <div className="card-text-block block-input">
-                        <div className="input-label">Объём носителя</div>
-                        <input
-                          type="text"
-                          className="card-input"
-                          value={rh.Area ?? ""}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setRequests((prev) =>
-                              prev.map((reqItem, i) => {
-                                if (i !== reqIndex) return reqItem;
-                                return {
-                                  ...reqItem,
-                                  RequestHeaters: reqItem.RequestHeaters?.map(
-                                    (innerRh, j) =>
-                                      j === rhIndex ? { ...innerRh, Area: value } : innerRh
-                                  ),
-                                };
-                              })
-                            );
-                          }}
-                        />
+                      {/* Блок с результатом расчёта по формуле из бэка */}
+                      <div className="card-result">
+                        {result ? result.toFixed(2) : "—"}
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </>
