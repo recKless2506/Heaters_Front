@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "build:pwa": "vite build",
     "preview:pwa": "vite preview --host",
+    "deploy": "npm run deploy:gh-pages",
     "deploy:gh-pages": "npm run build && npx gh-pages -d dist"
   },
   "dependencies": {

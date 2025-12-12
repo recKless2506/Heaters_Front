@@ -24,7 +24,7 @@ export default defineConfig({
       manifest: {
         name: 'Molodtsov Heaters',
         short_name: 'Heaters',
-        start_url: '/',
+        start_url: '/Molodtsov_Front/',
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#0567B7',

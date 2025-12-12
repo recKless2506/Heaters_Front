@@ -7,18 +7,23 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "generate-api": "node scripts/generate-api.mjs"
   },
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
-    "react-router-dom": "^7.0.2"
+    "react-router-dom": "^7.0.2",
+    "axios": "^1.7.7",
+    "@reduxjs/toolkit": "^2.3.0",
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.6.0",
     "vite": "^7.0.4",
-    "@tauri-apps/cli": "^2"
+    "@tauri-apps/cli": "^2",
+    "swagger-typescript-api": "^13.0.3"
   }
 }

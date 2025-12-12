@@ -1,36 +1,28 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { fetchCatalog } from "../api";
+import React, { useEffect, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { loadCatalog, setSearchValue } from "../slices/catalogSlice";
+import { addProductToDraft } from "../slices/requestsSlice";
 
 export function CatalogPage() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [search, setSearch] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { items, loading, error, searchValue } = useSelector((state) => state.catalog);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const p = await fetchCatalog();
-        setProducts(p);
-        setError(null);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Ошибка загрузки каталога");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    dispatch(loadCatalog());
+  }, [dispatch]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter((p) => {
+    const q = searchValue.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((p) => {
       const title = (p.Title || "").toLowerCase();
       const desc = (p.Description || "").toLowerCase();
       const power = (p.Power || "").toLowerCase();
       return title.includes(q) || desc.includes(q) || power.includes(q);
     });
-  }, [products, search]);
+  }, [items, searchValue]);
 
   if (loading) return <div style={{ padding: 24 }}>Загрузка каталога...</div>;
   if (error)
@@ -48,8 +40,8 @@ export function CatalogPage() {
         <input
           type="text"
           placeholder="Поиск по названию, описанию или мощности..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={searchValue}
+          onChange={(e) => dispatch(setSearchValue(e.target.value))}
           style={{
             width: "100%",
             padding: 10,
@@ -77,7 +69,9 @@ export function CatalogPage() {
               display: "flex",
               flexDirection: "column",
               minHeight: 280,
+              cursor: "pointer",
             }}
+            onClick={() => navigate(`/catalog/${p.ID}`)}
           >
             <img
               src={
@@ -106,12 +100,30 @@ export function CatalogPage() {
                 </div>
               )}
             </div>
+            <button
+              style={{
+                margin: 12,
+                padding: "8px 12px",
+                borderRadius: 6,
+                border: "none",
+                background: "#ffffff",
+                color: "#0567B7",
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(addProductToDraft(p.ID));
+              }}
+            >
+              Добавить
+            </button>
           </div>
         ))}
 
         {!filtered.length && (
           <div style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: 40 }}>
-            Товары не найдены по запросу "{search}"
+            Товары не найдены по запросу "{searchValue}"
           </div>
         )}
       </div>
