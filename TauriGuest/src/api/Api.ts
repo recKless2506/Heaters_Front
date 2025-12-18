@@ -261,7 +261,7 @@ export class Api<
      *
      * @name AddToCartCreate
      * @summary Add heater to cart
-     * @request POST:/add-to-cart/{id}
+   * @request POST:/add-to-cart/{id}
      */
     addToCartCreate: (id: number, params: RequestParams = {}) =>
       this.request<any, string | Record<string, any>>({
@@ -276,7 +276,7 @@ export class Api<
      *
      * @name ClearCartCreate
      * @summary Clear cart
-     * @request POST:/clear-cart
+   * @request POST:/clear-cart
      */
     clearCartCreate: (params: RequestParams = {}) =>
       this.request<any, string | Record<string, any>>({
@@ -291,7 +291,7 @@ export class Api<
      *
      * @name HeaterCreate
      * @summary Add new heater product
-     * @request POST:/heater
+   * @request POST:/heater
      */
     heaterCreate: (product: DsHeaterProduct, params: RequestParams = {}) =>
       this.request<DsHeaterProduct, Record<string, any>>({
@@ -308,7 +308,7 @@ export class Api<
      *
      * @name HeaterDetail
      * @summary Get heater by ID
-     * @request GET:/heater/{id}
+   * @request GET:/heater/{id}
      */
     heaterDetail: (id: number, params: RequestParams = {}) =>
       this.request<DsHeaterProduct, Record<string, any>>({
@@ -323,7 +323,7 @@ export class Api<
      *
      * @name HeaterUpdate
      * @summary Update heater product
-     * @request PUT:/heater/{id}
+   * @request PUT:/heater/{id}
      */
     heaterUpdate: (
       id: number,
@@ -344,7 +344,7 @@ export class Api<
      *
      * @name HeaterDelete
      * @summary Delete heater product (soft)
-     * @request DELETE:/heater/{id}
+   * @request DELETE:/heater/{id}
      */
     heaterDelete: (id: number, params: RequestParams = {}) =>
       this.request<string, Record<string, any>>({
@@ -359,7 +359,7 @@ export class Api<
      *
      * @name ImageCreate
      * @summary Upload image for heater product
-     * @request POST:/heater/{id}/image
+   * @request POST:/heater/{id}/image
      */
     imageCreate: (
       id: number,
@@ -469,7 +469,7 @@ export class Api<
      * @tags Users
      * @name LoginCreate
      * @summary Вход пользователя
-     * @request POST:/login
+   * @request POST:/login
      */
     loginCreate: (
       login: {
@@ -494,7 +494,7 @@ export class Api<
      * @tags Users
      * @name LogoutCreate
      * @summary Logout user
-     * @request POST:/logout
+   * @request POST:/logout
      * @secure
      */
     logoutCreate: (params: RequestParams = {}) =>
@@ -513,7 +513,7 @@ export class Api<
      * @tags Tests
      * @name PingDetail
      * @summary Show hello text
-     * @request GET:/ping/{name}
+   * @request GET:/ping/{name}
      */
     pingDetail: (name: string, params: RequestParams = {}) =>
       this.request<ApiPingResp, any>({
@@ -529,7 +529,7 @@ export class Api<
      *
      * @name RegisterCreate
      * @summary Register new user
-     * @request POST:/register
+   * @request POST:/register
      */
     registerCreate: (
       user: {

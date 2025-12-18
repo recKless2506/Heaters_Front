@@ -10,7 +10,7 @@ const initialState = {
   error: null,
 };
 
-export const loadCatalog = createAsyncThunk(
+export const loadCatalogHeaters = createAsyncThunk(
   "catalog/loadCatalog",
   async (_, { rejectWithValue }) => {
     try {
@@ -44,15 +44,15 @@ const catalogSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loadCatalog.pending, (state) => {
+      .addCase(loadCatalogHeaters.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(loadCatalog.fulfilled, (state, action) => {
+      .addCase(loadCatalogHeaters.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
       })
-      .addCase(loadCatalog.rejected, (state, action) => {
+      .addCase(loadCatalogHeaters.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка загрузки каталога";
       });

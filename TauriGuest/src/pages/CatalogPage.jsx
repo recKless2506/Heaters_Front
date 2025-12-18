@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { loadCatalog, setSearchValue } from "../slices/catalogSlice";
-import { addProductToDraft } from "../slices/requestsSlice";
+import { loadCatalogHeaters, setSearchValue } from "../slices/catalogSlice";
+import { addProductToDraftHeaters } from "../slices/requestsSlice";
 
 export function CatalogPage() {
   const dispatch = useDispatch();
@@ -10,7 +10,7 @@ export function CatalogPage() {
   const { items, loading, error, searchValue } = useSelector((state) => state.catalog);
 
   useEffect(() => {
-    dispatch(loadCatalog());
+    dispatch(loadCatalogHeaters());
   }, [dispatch]);
 
   const filtered = useMemo(() => {
@@ -71,7 +71,7 @@ export function CatalogPage() {
               minHeight: 280,
               cursor: "pointer",
             }}
-            onClick={() => navigate(`/catalog/${p.ID}`)}
+            onClick={() => navigate(`/heaters-catalog/${p.ID}`)}
           >
             <img
               src={
@@ -113,7 +113,7 @@ export function CatalogPage() {
               }}
               onClick={(e) => {
                 e.stopPropagation();
-                dispatch(addProductToDraft(p.ID));
+                dispatch(addProductToDraftHeaters(p.ID));
               }}
             >
               Добавить

@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
-  clearDraft,
-  loadDraftRequest,
-  removeRequestItem,
-  updateDraftParams,
-  submitDraftRequest,
+  clearDraftHeaters,
+  loadDraftRequestHeaters,
+  removeRequestItemHeaters,
+  updateDraftParamsHeaters,
+  submitDraftRequestHeaters,
 } from "../slices/requestsSlice";
 
 export function CartPage() {
@@ -17,10 +17,10 @@ export function CartPage() {
   const [placeSquare, setPlaceSquare] = useState("");
   const [outsideTemperature, setOutsideTemperature] = useState("");
   const [insideTemperature, setInsideTemperature] = useState("");
-   const [calculatedCost, setCalculatedCost] = useState(null);
+  const [calculatedCost, setCalculatedCost] = useState(null);
 
   useEffect(() => {
-    dispatch(loadDraftRequest());
+    dispatch(loadDraftRequestHeaters());
   }, [dispatch]);
 
   useEffect(() => {
@@ -43,13 +43,20 @@ export function CartPage() {
     }
   }, [draft]);
 
+  // Поддерживаем локальное поле "Рассчитано по формуле" в синхроне с полем Result из БД
+  useEffect(() => {
+    if (draft && typeof draft.Result === "number" && Number.isFinite(draft.Result)) {
+      setCalculatedCost(draft.Result);
+    }
+  }, [draft && draft.Result]);
+
   const handleSaveParams = () => {
     const ps = parseFloat(placeSquare || "0");
     const tOut = parseFloat(outsideTemperature || "0");
     const tIn = parseFloat(insideTemperature || "0");
 
     return dispatch(
-      updateDraftParams({
+      updateDraftParamsHeaters({
         placeSquare: Number.isNaN(ps) ? 0 : ps,
         outsideTemperature: Number.isNaN(tOut) ? 0 : tOut,
         insideTemperature: Number.isNaN(tIn) ? 0 : tIn,
@@ -60,56 +67,39 @@ export function CartPage() {
   const handleSubmitDraft = async () => {
     // Сначала сохраняем введённые параметры, затем формируем заявку
     const actionSave = await handleSaveParams();
-    if (updateDraftParams.rejected.match(actionSave)) {
+    if (updateDraftParamsHeaters.rejected.match(actionSave)) {
       return;
     }
 
-    await dispatch(submitDraftRequest());
+    await dispatch(submitDraftRequestHeaters());
   };
 
   const handleClear = async () => {
-    const action = await dispatch(clearDraft());
-    if (clearDraft.fulfilled.match(action)) {
-      navigate("/catalog");
+    const action = await dispatch(clearDraftHeaters());
+    if (clearDraftHeaters.fulfilled.match(action)) {
+      navigate("/heaters-catalog");
     }
   };
 
   const handleRemoveItem = (productId) => {
     if (!draft) return;
     dispatch(
-      removeRequestItem({
+      removeRequestItemHeaters({
         requestId: draft.ID,
         productId,
       }),
     );
   };
 
-  const handleCalculateCost = () => {
+  const handleCalculateCost = async () => {
     if (!draft) return;
 
-    const areaFromInput =
-      placeSquare !== "" ? parseFloat(placeSquare) : Number(draft.PlaceSquare || 0);
-
-    const inside =
-      insideTemperature !== ""
-        ? parseFloat(insideTemperature)
-        : Number(draft.InsideTemperature || 0);
-    const outside =
-      outsideTemperature !== ""
-        ? parseFloat(outsideTemperature)
-        : Number(draft.OutsideTemperature || 0);
-
-    if (Number.isNaN(areaFromInput) || Number.isNaN(inside) || Number.isNaN(outside)) {
-      setCalculatedCost(null);
+    // Сначала сохраняем введённые параметры в БД (там же пересчитывается cost/result)
+    const actionSave = await handleSaveParams();
+    if (updateDraftParamsHeaters.rejected.match(actionSave)) {
       return;
     }
-
-    const totalAreaForFormula = areaFromInput > 0 ? areaFromInput : 0;
-    const deltaT = inside - outside;
-    // Новая формула: cost = k * S * (Tin - Tout), где k ~ 15
-    const k = 15;
-    const cost = k * totalAreaForFormula * deltaT;
-    setCalculatedCost(Number.isFinite(cost) ? cost : 0);
+    // После успешного сохранения сработает useEffect выше и подхватит draft.Result из БД.
   };
 
   if (loading) return <div style={{ padding: 24 }}>Загрузка корзины...</div>;
@@ -300,21 +290,38 @@ export function CartPage() {
                   {typeof rh.Cost === "number" ? `${rh.Cost.toFixed(2)} ₽` : "—"}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => handleRemoveItem(rh.HeatersProductID)}
-                style={{
-                  padding: "4px 10px",
-                  borderRadius: 8,
-                  border: "1px solid #ef4444",
-                  background: "#ffffff",
-                  color: "#b91c1c",
-                  fontSize: 13,
-                  cursor: "pointer",
-                }}
-              >
-                Удалить
-              </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={handleSaveParams}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: 8,
+                    border: "1px solid #0567b7",
+                    background: "#0567b7",
+                    color: "#ffffff",
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  Сохранить
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveItem(rh.HeatersProductID)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: 8,
+                    border: "1px solid #ef4444",
+                    background: "#ffffff",
+                    color: "#b91c1c",
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  Удалить
+                </button>
+              </div>
             </div>
           ))}
         </div>

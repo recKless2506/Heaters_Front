@@ -11,6 +11,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
   padding: 10px 18px;
   background: #0567b7;
   color: white;
@@ -28,6 +29,46 @@
   width: 28px;
   height: 28px;
   display: block;
+}
+
+/* Главное меню в хедере */
+.app-main-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.app-main-nav a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #e5f0ff;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition:
+    background-color 0.15s ease-out,
+    color 0.15s ease-out,
+    transform 0.1s ease-out,
+    box-shadow 0.15s ease-out;
+}
+
+.app-main-nav a:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
+}
+
+.app-main-nav a:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.25);
 }
 
 .app-nav {

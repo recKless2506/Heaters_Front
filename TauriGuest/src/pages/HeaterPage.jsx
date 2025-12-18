@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { api } from "../api/index";
-import { removeRequestItem } from "../slices/requestsSlice";
+import { removeRequestItemHeaters } from "../slices/requestsSlice";
 
 export function HeaterPage() {
   const { id } = useParams();
@@ -35,12 +35,12 @@ export function HeaterPage() {
   const handleRemoveItem = (productId) => {
     if (!heater?.id) return;
     dispatch(
-      removeRequestItem({
+      removeRequestItemHeaters({
         requestId: heater.id,
         productId,
       }),
     ).then((action) => {
-      if (removeRequestItem.fulfilled.match(action)) {
+      if (removeRequestItemHeaters.fulfilled.match(action)) {
         api.heater
           .heaterDetail(heater.id)
           .then((resp) => setHeater(resp.data))

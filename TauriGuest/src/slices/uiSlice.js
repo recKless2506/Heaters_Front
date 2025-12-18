@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loginUser, registerUser } from "./authSlice";
+import { loginUserHeaters, registerUserHeaters } from "./authSlice";
 import {
-  loadDraftRequest,
-  loadRequestsList,
-  addProductToDraft,
-  submitDraftRequest,
+  loadDraftRequestHeaters,
+  loadRequestsListHeaters,
+  addProductToDraftHeaters,
+  submitDraftRequestHeaters,
 } from "./requestsSlice";
-import { loadCatalog } from "./catalogSlice";
+import { loadCatalogHeaters } from "./catalogSlice";
 
 // Базовое состояние интерфейса:
 // глобальный индикатор загрузки и текст ошибки
@@ -41,29 +41,33 @@ const uiSlice = createSlice({
 
     builder
       // auth
-      .addCase(loginUser.pending, start)
-      .addCase(loginUser.fulfilled, stopOk)
-      .addCase(loginUser.rejected, stopErr)
-      .addCase(registerUser.pending, start)
-      .addCase(registerUser.fulfilled, stopOk)
-      .addCase(registerUser.rejected, stopErr)
+      .addCase(loginUserHeaters.pending, start)
+      .addCase(loginUserHeaters.fulfilled, stopOk)
+      .addCase(loginUserHeaters.rejected, stopErr)
+      .addCase(registerUserHeaters.pending, start)
+      .addCase(registerUserHeaters.fulfilled, stopOk)
+      .addCase(registerUserHeaters.rejected, stopErr)
       // catalog
-      .addCase(loadCatalog.pending, start)
-      .addCase(loadCatalog.fulfilled, stopOk)
-      .addCase(loadCatalog.rejected, stopErr)
+      .addCase(loadCatalogHeaters.pending, start)
+      .addCase(loadCatalogHeaters.fulfilled, stopOk)
+      .addCase(loadCatalogHeaters.rejected, stopErr)
       // requests
-      .addCase(loadDraftRequest.pending, start)
-      .addCase(loadDraftRequest.fulfilled, stopOk)
-      .addCase(loadDraftRequest.rejected, stopErr)
-      .addCase(loadRequestsList.pending, start)
-      .addCase(loadRequestsList.fulfilled, stopOk)
-      .addCase(loadRequestsList.rejected, stopErr)
-      .addCase(addProductToDraft.pending, start)
-      .addCase(addProductToDraft.fulfilled, stopOk)
-      .addCase(addProductToDraft.rejected, stopErr)
-      .addCase(submitDraftRequest.pending, start)
-      .addCase(submitDraftRequest.fulfilled, stopOk)
-      .addCase(submitDraftRequest.rejected, stopErr);
+      .addCase(loadDraftRequestHeaters.pending, start)
+      .addCase(loadDraftRequestHeaters.fulfilled, stopOk)
+      .addCase(loadDraftRequestHeaters.rejected, stopErr)
+      .addCase(loadRequestsListHeaters.pending, start)
+      .addCase(loadRequestsListHeaters.fulfilled, stopOk)
+      .addCase(loadRequestsListHeaters.rejected, stopErr)
+      // возможно, пригодится для глобального лоадера при модерации
+      // .addCase(moderateRequestHeaters.pending, start)
+      // .addCase(moderateRequestHeaters.fulfilled, stopOk)
+      // .addCase(moderateRequestHeaters.rejected, stopErr)
+      .addCase(addProductToDraftHeaters.pending, start)
+      .addCase(addProductToDraftHeaters.fulfilled, stopOk)
+      .addCase(addProductToDraftHeaters.rejected, stopErr)
+      .addCase(submitDraftRequestHeaters.pending, start)
+      .addCase(submitDraftRequestHeaters.fulfilled, stopOk)
+      .addCase(submitDraftRequestHeaters.rejected, stopErr);
   },
 });
 

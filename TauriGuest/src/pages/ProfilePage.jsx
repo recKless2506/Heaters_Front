@@ -10,7 +10,7 @@ export function ProfilePage() {
       <div style={{ padding: 24 }}>
         <h2>Личный кабинет</h2>
         <p>
-          Вы не авторизованы. <Link to="/login">Войти</Link>
+          Вы не авторизованы. <Link to="/heaters-login">Войти</Link>
         </p>
       </div>
     );

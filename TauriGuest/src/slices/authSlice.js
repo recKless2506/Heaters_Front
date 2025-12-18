@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "../api/index";
 
 // Логин
-export const loginUser = createAsyncThunk(
+export const loginUserHeaters = createAsyncThunk(
   "auth/loginUser",
   async ({ login, password }, { rejectWithValue }) => {
     try {
@@ -42,7 +42,7 @@ export const loginUser = createAsyncThunk(
 );
 
 // Регистрация
-export const registerUser = createAsyncThunk(
+export const registerUserHeaters = createAsyncThunk(
   "auth/registerUser",
   async ({ login, password }, { rejectWithValue }) => {
     try {
@@ -90,11 +90,11 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // login
-      .addCase(loginUser.pending, (state) => {
+      .addCase(loginUserHeaters.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action) => {
+      .addCase(loginUserHeaters.fulfilled, (state, action) => {
         state.loading = false;
         state.user = {
           id: action.payload.id,
@@ -103,19 +103,19 @@ const authSlice = createSlice({
         };
         state.token = action.payload.token;
       })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(loginUserHeaters.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка авторизации";
       })
       // register
-      .addCase(registerUser.pending, (state) => {
+      .addCase(registerUserHeaters.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state) => {
+      .addCase(registerUserHeaters.fulfilled, (state) => {
         state.loading = false;
       })
-      .addCase(registerUser.rejected, (state, action) => {
+      .addCase(registerUserHeaters.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка регистрации";
       });

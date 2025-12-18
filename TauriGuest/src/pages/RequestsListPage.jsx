@@ -1,20 +1,51 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { loadRequestsList } from "../slices/requestsSlice";
+import {
+  loadRequestsListHeaters,
+  moderateRequestHeaters,
+} from "../slices/requestsSlice";
 
 export function RequestsListPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { list, loading, error } = useSelector((state) => state.requests);
+  const { user } = useSelector((state) => state.auth);
+  const isModerator = Boolean(user && user.is_moderator);
 
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const today = new Date().toISOString().slice(0, 10);
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState(today);
   const [status, setStatus] = useState("all");
+  const [topic, setTopic] = useState("");
+  const [creatorId, setCreatorId] = useState("");
 
+  // Short polling списка заявок с фильтрами по дате/статусу на бэкенде
   useEffect(() => {
-    dispatch(loadRequestsList());
-  }, [dispatch]);
+    let cancelled = false;
+    let timeoutId;
+
+    const fetchData = () => {
+      dispatch(
+        loadRequestsListHeaters({
+          from: dateFrom || undefined,
+          to: dateTo || undefined,
+          status,
+        }),
+      ).finally(() => {
+        if (!cancelled) {
+          timeoutId = setTimeout(fetchData, 5000);
+        }
+      });
+    };
+
+    fetchData();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [dispatch, dateFrom, dateTo, status]);
 
   const formatDate = (value) => {
     if (!value) return "-";
@@ -24,26 +55,37 @@ export function RequestsListPage() {
   };
 
   const filtered = useMemo(() => {
-    const from = dateFrom ? new Date(dateFrom) : null;
-    const to = dateTo ? new Date(dateTo) : null;
+    const topicNorm = topic.trim().toLowerCase();
+    const creatorNorm = creatorId.trim();
 
     return list.filter((req) => {
-      const createdRaw = req.CreatedAt || req.createdAt;
-      const created = createdRaw ? new Date(createdRaw) : null;
-
-      if (from && (!created || created < from)) return false;
-      if (to) {
-        // включительно по дате "до"
-        const toEnd = new Date(to);
-        toEnd.setDate(toEnd.getDate() + 1);
-        if (!created || created >= toEnd) return false;
+      if (creatorNorm) {
+        const creator =
+          String(req.CreatorID ?? req.creatorID ?? req.UserID ?? req.userID ?? "");
+        if (creator !== creatorNorm) return false;
       }
 
-      if (status !== "all" && req.Status !== status) return false;
+      if (topicNorm) {
+        const heaters = req.RequestHeaters || req.requestHeaters || [];
+        const titles = heaters
+          .map((rh) => rh.HeaterProduct?.Title || rh.heaterProduct?.title || "")
+          .join(" ")
+          .toLowerCase();
+        if (!titles.includes(topicNorm)) return false;
+      }
 
       return true;
     });
-  }, [list, dateFrom, dateTo, status]);
+  }, [list, topic, creatorId]);
+
+  const nonEmptyCount = useMemo(
+    () =>
+      filtered.filter(
+        (req) =>
+          (req.RequestHeaters || req.requestHeaters || []).length > 0,
+      ).length,
+    [filtered],
+  );
 
   if (loading) {
     return <div style={{ padding: 24 }}>Загрузка заявок...</div>;
@@ -106,6 +148,36 @@ export function RequestsListPage() {
             </select>
           </label>
         </div>
+        <div>
+          <label>
+            Тема:&nbsp;
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="Поиск по услугам"
+              style={{ minWidth: 160 }}
+            />
+          </label>
+        </div>
+        {isModerator && (
+          <div>
+            <label>
+              Создатель (ID):&nbsp;
+              <input
+                type="number"
+                value={creatorId}
+                onChange={(e) => setCreatorId(e.target.value)}
+                style={{ width: 80 }}
+              />
+            </label>
+          </div>
+        )}
+      </div>
+
+      <div style={{ fontSize: 13, marginBottom: 8, color: "#4b5563" }}>
+        Не пустых заявок: <strong>{nonEmptyCount}</strong> из{" "}
+        <strong>{filtered.length}</strong>
       </div>
 
       {filtered.length === 0 ? (
@@ -113,9 +185,9 @@ export function RequestsListPage() {
       ) : (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 16,
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
             marginTop: 12,
           }}
         >
@@ -130,60 +202,155 @@ export function RequestsListPage() {
               <div
                 key={req.ID}
                 style={{
-                  borderRadius: 12,
+                  width: "100%",
+                  borderRadius: 14,
                   border: "1px solid #e5e7eb",
-                  background: "#ffffff",
-                  padding: 12,
+                  background:
+                    "linear-gradient(90deg, #f3f4ff 0, #ffffff 28%, #ffffff 100%)",
+                  padding: 14,
                   display: "flex",
                   flexDirection: "column",
-                  gap: 6,
-                  boxShadow: "0 1px 2px rgba(15,23,42,0.06)",
+                  gap: 8,
+                  boxShadow: "0 6px 14px rgba(15,23,42,0.08)",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontWeight: 600 }}>Заявка #{req.ID}</div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    borderBottom: "1px solid #e5e7eb",
+                    paddingBottom: 6,
+                    marginBottom: 4,
+                  }}
+                >
+                  <div style={{ fontWeight: 650, fontSize: 15, color: "#0f172a" }}>
+                    Заявка #{req.ID}
+                  </div>
                   <span
                     style={{
-                      padding: "2px 8px",
+                      padding: "2px 10px",
                       borderRadius: 999,
                       fontSize: 12,
                       background: "#e5f2ff",
                       color: "#0567b7",
+                      fontWeight: 500,
                     }}
                   >
                     {req.Status}
                   </span>
                 </div>
 
-                <div style={{ fontSize: 13, marginTop: 4 }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 12,
+                    color: "#4b5563",
+                  }}
+                >
                   <div>Создана: {createdAt}</div>
                   <div>Отправлена: {submittedAt}</div>
                   <div>Завершена: {completedAt}</div>
                   <div>Обновлена: {updatedAt}</div>
                 </div>
 
-                <div style={{ fontSize: 13, marginTop: 4 }}>
-                  <div>Количество позиций: {itemsCount}</div>
-                  <div>Стоимость: {req.Cost != null ? req.Cost.toFixed(2) : "-"} ₽</div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => navigate(`/applications/${req.ID}`)}
+                <div
                   style={{
-                    marginTop: 8,
-                    alignSelf: "flex-start",
-                    padding: "6px 12px",
-                    borderRadius: 8,
-                    border: "none",
-                    background: "#0567b7",
-                    color: "#ffffff",
-                    cursor: "pointer",
                     fontSize: 13,
+                    marginTop: 4,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 12,
+                    alignItems: "center",
                   }}
                 >
-                  Открыть
-                </button>
+                  <div>Количество позиций: {itemsCount}</div>
+                  <div>
+                    Стоимость:{" "}
+                    {req.Cost != null ? `${req.Cost.toFixed(2)} ₽` : "-"}
+                  </div>
+                  {req.Result != null && (
+                    <div>Результат: {req.Result.toFixed(3)}</div>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 6,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                    alignItems: "center",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/heaters-applications/${req.ID}`)}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: 999,
+                      border: "none",
+                      background: "#0567b7",
+                      color: "#ffffff",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Открыть заявку
+                  </button>
+
+                  {isModerator && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          dispatch(
+                            moderateRequestHeaters({
+                              requestId: req.ID,
+                              status: "завершено",
+                            }),
+                          )
+                        }
+                        style={{
+                          padding: "4px 10px",
+                          borderRadius: 999,
+                          border: "1px solid #16a34a",
+                          background: "#dcfce7",
+                          color: "#166534",
+                          fontSize: 12,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Завершить
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          dispatch(
+                            moderateRequestHeaters({
+                              requestId: req.ID,
+                              status: "отклонено",
+                            }),
+                          )
+                        }
+                        style={{
+                          padding: "4px 10px",
+                          borderRadius: 999,
+                          border: "1px solid #f97316",
+                          background: "#fff7ed",
+                          color: "#c2410c",
+                          fontSize: 12,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Отклонить
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             );
           })}

@@ -14,7 +14,7 @@ const initialState = {
 };
 
 // Загрузить черновик заявки (корзина)
-export const loadDraftRequest = createAsyncThunk(
+export const loadDraftRequestHeaters = createAsyncThunk(
   "requests/loadDraftRequest",
   async (_, { rejectWithValue, getState }) => {
     try {
@@ -37,13 +37,21 @@ export const loadDraftRequest = createAsyncThunk(
   }
 );
 
-// Загрузить список заявок пользователя
-export const loadRequestsList = createAsyncThunk(
+// Загрузить список заявок пользователя / модератора (с фильтрами на бэкенде)
+export const loadRequestsListHeaters = createAsyncThunk(
   "requests/loadRequestsList",
-  async (_, { rejectWithValue, getState }) => {
+  async (filters, { rejectWithValue, getState }) => {
     try {
       const { token } = getState().auth;
+      const params = {};
+      if (filters) {
+        const { from, to, status } = filters;
+        if (from) params.from = from;
+        if (to) params.to = to;
+        if (status && status !== "all") params.status = status;
+      }
       const resp = await axios.get(`${API_BASE}/heaters_application`, {
+        params,
         headers: {
           Accept: "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -61,8 +69,39 @@ export const loadRequestsList = createAsyncThunk(
   }
 );
 
+// Модерация заявки (смена статуса)
+export const moderateRequestHeaters = createAsyncThunk(
+  "requests/moderateRequest",
+  async ({ requestId, status }, { rejectWithValue, getState, dispatch }) => {
+    try {
+      const { token } = getState().auth;
+      const resp = await axios.put(
+        `${API_BASE}/heaters_application/moderate/${requestId}`,
+        null,
+        {
+          params: { status },
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          withCredentials: true,
+        },
+      );
+      const data = resp.data;
+      if (!data.success) {
+        return rejectWithValue(data.message || "Ошибка изменения статуса заявки");
+      }
+      // После модерации перечитываем список заявок
+      await dispatch(loadRequestsListHeaters());
+      return true;
+    } catch (e) {
+      return rejectWithValue(e.message || "Ошибка изменения статуса заявки");
+    }
+  }
+);
+
 // Добавить товар в черновик заявки
-export const addProductToDraft = createAsyncThunk(
+export const addProductToDraftHeaters = createAsyncThunk(
   "requests/addProductToDraft",
   async (productId, { rejectWithValue, dispatch }) => {
     try {
@@ -72,7 +111,7 @@ export const addProductToDraft = createAsyncThunk(
         return rejectWithValue(data.message || "Ошибка добавления товара в заявку");
       }
       // После успешного добавления обновляем черновик
-      dispatch(loadDraftRequest());
+      dispatch(loadDraftRequestHeaters());
       return true;
     } catch (e) {
       return rejectWithValue(e.message || "Ошибка добавления товара в заявку");
@@ -81,7 +120,7 @@ export const addProductToDraft = createAsyncThunk(
 );
 
 // Очистить корзину (отметить все черновики как удалённые)
-export const clearDraft = createAsyncThunk(
+export const clearDraftHeaters = createAsyncThunk(
   "requests/clearDraft",
   async (_, { rejectWithValue, dispatch }) => {
     try {
@@ -92,8 +131,7 @@ export const clearDraft = createAsyncThunk(
       if (!data.success) {
         return rejectWithValue(data.message || "Ошибка очистки корзины");
       }
-      // После очистки перечитываем корзину
-      dispatch(loadDraftRequest());
+      dispatch(loadDraftRequestHeaters());
       return true;
     } catch (e) {
       return rejectWithValue(e.message || "Ошибка очистки корзины");
@@ -102,7 +140,7 @@ export const clearDraft = createAsyncThunk(
 );
 
 // Обновить общие поля черновика (площадь и температуры)
-export const updateDraftParams = createAsyncThunk(
+export const updateDraftParamsHeaters = createAsyncThunk(
   "requests/updateDraftParams",
   async (
     { placeSquare, outsideTemperature, insideTemperature },
@@ -139,7 +177,7 @@ export const updateDraftParams = createAsyncThunk(
       }
 
       // Перечитываем черновик, чтобы отобразить актуальные данные
-      dispatch(loadDraftRequest());
+      dispatch(loadDraftRequestHeaters());
       return true;
     } catch (e) {
       return rejectWithValue(e.message || "Ошибка обновления корзины");
@@ -150,7 +188,7 @@ export const updateDraftParams = createAsyncThunk(
 // "Сформировать" текущий черновик заявки:
 // вызываем защищённый эндпоинт /heaters_application/submit/:id,
 // который переводит статус заявки из "черновик" в "создано"
-export const submitDraftRequest = createAsyncThunk(
+export const submitDraftRequestHeaters = createAsyncThunk(
   "requests/submitDraftRequest",
   async (_, { rejectWithValue, getState, dispatch }) => {
     try {
@@ -179,8 +217,8 @@ export const submitDraftRequest = createAsyncThunk(
       }
 
       // Перечитываем текущий черновик и список заявок
-      await dispatch(loadDraftRequest());
-      await dispatch(loadRequestsList());
+      await dispatch(loadDraftRequestHeaters());
+      await dispatch(loadRequestsListHeaters());
 
       return true;
     } catch (e) {
@@ -190,7 +228,7 @@ export const submitDraftRequest = createAsyncThunk(
 );
 
 // Удалить товар из заявки (используется на странице заявки в статусе "черновик")
-export const removeRequestItem = createAsyncThunk(
+export const removeRequestItemHeaters = createAsyncThunk(
   "requests/removeRequestItem",
   async ({ requestId, productId }, { rejectWithValue, dispatch, getState }) => {
     try {
@@ -212,8 +250,8 @@ export const removeRequestItem = createAsyncThunk(
         return rejectWithValue(data.message || "Ошибка при удалении товара из заявки");
       }
       // Обновляем текущий черновик и список заявок
-      dispatch(loadDraftRequest());
-      dispatch(loadRequestsList());
+      dispatch(loadDraftRequestHeaters());
+      dispatch(loadRequestsListHeaters());
       return true;
     } catch (e) {
       return rejectWithValue(e.message || "Ошибка при удалении товара из заявки");
@@ -236,66 +274,73 @@ const requestsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // loadDraftRequest
-      .addCase(loadDraftRequest.pending, (state) => {
+      .addCase(loadDraftRequestHeaters.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(loadDraftRequest.fulfilled, (state, action) => {
+      .addCase(loadDraftRequestHeaters.fulfilled, (state, action) => {
         state.loading = false;
         // Ожидаем, что API вернёт массив заявок-черновиков; берём первую как текущий черновик
         state.draft = action.payload[0] ?? null;
       })
-      .addCase(loadDraftRequest.rejected, (state, action) => {
+      .addCase(loadDraftRequestHeaters.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка загрузки корзины";
       })
       // loadRequestsList
-      .addCase(loadRequestsList.pending, (state) => {
+      .addCase(loadRequestsListHeaters.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(loadRequestsList.fulfilled, (state, action) => {
+      .addCase(loadRequestsListHeaters.fulfilled, (state, action) => {
         state.loading = false;
         state.list = action.payload;
       })
-      .addCase(loadRequestsList.rejected, (state, action) => {
+      .addCase(loadRequestsListHeaters.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Ошибка загрузки заявок";
       })
       // addProductToDraft
-      .addCase(addProductToDraft.pending, (state) => {
+      .addCase(addProductToDraftHeaters.pending, (state) => {
         state.error = null;
       })
-      .addCase(addProductToDraft.rejected, (state, action) => {
+      .addCase(addProductToDraftHeaters.rejected, (state, action) => {
         state.error = action.payload || "Ошибка добавления товара в заявку";
       })
       // clearDraft
-      .addCase(clearDraft.pending, (state) => {
+      .addCase(clearDraftHeaters.pending, (state) => {
         state.error = null;
       })
-      .addCase(clearDraft.fulfilled, (state) => {
+      .addCase(clearDraftHeaters.fulfilled, (state) => {
         state.draft = null;
       })
       // updateDraftParams
-      .addCase(updateDraftParams.pending, (state) => {
+      .addCase(updateDraftParamsHeaters.pending, (state) => {
         state.error = null;
       })
-      .addCase(updateDraftParams.rejected, (state, action) => {
+      .addCase(updateDraftParamsHeaters.rejected, (state, action) => {
         state.error = action.payload || "Ошибка обновления корзины";
       })
       // removeRequestItem
-      .addCase(removeRequestItem.pending, (state) => {
+      .addCase(removeRequestItemHeaters.pending, (state) => {
         state.error = null;
       })
-      .addCase(removeRequestItem.rejected, (state, action) => {
+      .addCase(removeRequestItemHeaters.rejected, (state, action) => {
         state.error = action.payload || "Ошибка при удалении товара из заявки";
       })
       // submitDraftRequest
-      .addCase(submitDraftRequest.pending, (state) => {
+      .addCase(submitDraftRequestHeaters.pending, (state) => {
         state.error = null;
       })
-      .addCase(submitDraftRequest.rejected, (state, action) => {
+      .addCase(submitDraftRequestHeaters.rejected, (state, action) => {
         state.error = action.payload || "Ошибка формирования заявки";
+      })
+      // moderateRequest
+      .addCase(moderateRequestHeaters.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(moderateRequestHeaters.rejected, (state, action) => {
+        state.error = action.payload || "Ошибка изменения статуса заявки";
       });
   },
 });

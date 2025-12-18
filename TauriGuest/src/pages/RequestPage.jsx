@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { loadDraftRequest, removeRequestItem, updateDraftParams } from "../slices/requestsSlice";
+import {
+  loadDraftRequestHeaters,
+  removeRequestItemHeaters,
+  updateDraftParamsHeaters,
+} from "../slices/requestsSlice";
 
 export function RequestPage() {
   const { id } = useParams();
@@ -15,7 +19,7 @@ export function RequestPage() {
 
   useEffect(() => {
     // На всякий случай подгружаем черновик при заходе на страницу
-    dispatch(loadDraftRequest());
+    dispatch(loadDraftRequestHeaters());
   }, [dispatch]);
 
   const numericId = Number(id);
@@ -45,13 +49,20 @@ export function RequestPage() {
     }
   }, [request, isDraft]);
 
+  // Поддерживаем локальное поле "Рассчитано по формуле" в синхроне с полем Result из БД
+  useEffect(() => {
+    if (request && typeof request.Result === "number" && Number.isFinite(request.Result)) {
+      setCalculatedCost(request.Result);
+    }
+  }, [request && request.Result]);
+
   const handleSaveParams = () => {
     const ps = parseFloat(placeSquare || "0");
     const tOut = parseFloat(outsideTemperature || "0");
     const tIn = parseFloat(insideTemperature || "0");
 
-    dispatch(
-      updateDraftParams({
+    return dispatch(
+      updateDraftParamsHeaters({
         placeSquare: Number.isNaN(ps) ? 0 : ps,
         outsideTemperature: Number.isNaN(tOut) ? 0 : tOut,
         insideTemperature: Number.isNaN(tIn) ? 0 : tIn,
@@ -59,40 +70,23 @@ export function RequestPage() {
     );
   };
 
-  const handleCalculateCost = () => {
+  const handleCalculateCost = async () => {
     if (!request) return;
 
-    const areaFromInput =
-      isDraft && placeSquare !== ""
-        ? parseFloat(placeSquare)
-        : Number(request.PlaceSquare || 0);
-
-    const inside =
-      isDraft && insideTemperature !== ""
-        ? parseFloat(insideTemperature)
-        : Number(request.InsideTemperature || 0);
-    const outside =
-      isDraft && outsideTemperature !== ""
-        ? parseFloat(outsideTemperature)
-        : Number(request.OutsideTemperature || 0);
-
-    if (Number.isNaN(areaFromInput) || Number.isNaN(inside) || Number.isNaN(outside)) {
-      setCalculatedCost(null);
-      return;
+    // Для черновика сначала сохраняем введённые параметры в БД (там же пересчитывается cost/result)
+    if (isDraft) {
+      const actionSave = await handleSaveParams();
+      if (updateDraftParamsHeaters.rejected.match(actionSave)) {
+        return;
+      }
+      // После успешного сохранения useEffect выше подхватит request.Result.
     }
-
-    const totalAreaForFormula = areaFromInput > 0 ? areaFromInput : 0;
-    const deltaT = inside - outside;
-    // Новая формула: cost = k * S * (Tin - Tout), где k ~ 15
-    const k = 15;
-    const cost = k * totalAreaForFormula * deltaT;
-    setCalculatedCost(Number.isFinite(cost) ? cost : 0);
   };
 
   const handleRemoveItem = (productId) => {
     if (!request) return;
     dispatch(
-      removeRequestItem({
+      removeRequestItemHeaters({
         requestId: request.ID,
         productId,
       }),
@@ -270,21 +264,38 @@ export function RequestPage() {
                 </div>
               </div>
               {isDraft && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveItem(rh.HeatersProductID)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: 8,
-                    border: "1px solid #ef4444",
-                    background: "#ffffff",
-                    color: "#b91c1c",
-                    fontSize: 13,
-                    cursor: "pointer",
-                  }}
-                >
-                  Удалить
-                </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={handleSaveParams}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: 8,
+                      border: "1px solid #0567b7",
+                      background: "#0567b7",
+                      color: "#ffffff",
+                      fontSize: 13,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Сохранить
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveItem(rh.HeatersProductID)}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: 8,
+                      border: "1px solid #ef4444",
+                      background: "#ffffff",
+                      color: "#b91c1c",
+                      fontSize: 13,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Удалить
+                  </button>
+                </div>
               )}
           </div>
         ))}

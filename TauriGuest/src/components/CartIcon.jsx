@@ -11,7 +11,7 @@ const CartIcon = () => {
 
   const handleClick = () => {
     if (isDisabled) return;
-    navigate("/cart");
+    navigate("/heaters-cart");
   };
 
   return (
